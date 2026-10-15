@@ -1,0 +1,12 @@
+{
+  "documentType": "RECEIPT",
+  "merchantName": "Alfanar Fuel Station",
+  "vatNumber": null,
+  "totalAmount": null,
+  "currency": null,
+  "documentDate": "2025-06-14",
+  "cardLast4": "4242",
+  "invoiceNumber": null,
+  "rawText": "ALFANAR TOTAL unreadable",
+  "extractionConfidence": 0.4
+}

@@ -1,0 +1,12 @@
+{
+  "documentType": "TAX_INVOICE",
+  "merchantName": "Alfanar Fuel Station",
+  "vatNumber": "300000000000003",
+  "totalAmount": 12500,
+  "currency": "SAR",
+  "documentDate": null,
+  "cardLast4": "4242",
+  "invoiceNumber": "INV-99812",
+  "rawText": "TAX INVOICE INV-99812 Alfanar Fuel Station TOTAL 125.00 SAR CARD 4242 date unreadable",
+  "extractionConfidence": 0.9
+}

@@ -1,0 +1,2 @@
+synthetic fixture missing-card
+not a scanned document

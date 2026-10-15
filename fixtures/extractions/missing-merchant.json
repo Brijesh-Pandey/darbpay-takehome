@@ -1,0 +1,12 @@
+{
+  "documentType": "RECEIPT",
+  "merchantName": null,
+  "vatNumber": null,
+  "totalAmount": 12500,
+  "currency": "SAR",
+  "documentDate": "2025-06-14",
+  "cardLast4": "4242",
+  "invoiceNumber": null,
+  "rawText": "TOTAL 125.00 SAR CARD 4242 2025-06-14 merchant unreadable",
+  "extractionConfidence": 0.88
+}

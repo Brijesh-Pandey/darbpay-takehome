@@ -1,0 +1,13 @@
+{
+  "media_4471": { "file": "documents/exact-alfanar.txt", "mimeType": "image/jpeg" },
+  "media_albaik": { "file": "documents/albaik-ambiguous.txt", "mimeType": "image/jpeg" },
+  "media_tip": { "file": "documents/chefs-table-tip.txt", "mimeType": "image/jpeg" },
+  "media_missing_charge": { "file": "documents/missing-charge.txt", "mimeType": "application/pdf" },
+  "media_second": { "file": "documents/alfanar-second-photo.txt", "mimeType": "image/jpeg" },
+  "media_low": { "file": "documents/low-confidence.txt", "mimeType": "image/jpeg" },
+  "media_unreadable": { "file": "documents/unreadable.txt", "mimeType": "image/jpeg" },
+  "media_scan": { "file": "documents/unreadable-scan.txt", "mimeType": "image/jpeg" },
+  "media_unknown": { "file": "documents/unknown-bytes.txt", "mimeType": "image/jpeg" },
+  "media_no_charge": { "file": "documents/missing-charge.txt", "mimeType": "image/jpeg" },
+  "media_missing_date": { "file": "documents/missing-date.txt", "mimeType": "image/jpeg" }
+}

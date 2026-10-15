@@ -1,0 +1,2 @@
+synthetic fixture missing-merchant
+not a scanned document

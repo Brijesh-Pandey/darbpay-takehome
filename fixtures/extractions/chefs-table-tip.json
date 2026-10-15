@@ -1,0 +1,12 @@
+{
+  "documentType": "RECEIPT",
+  "merchantName": "The Chef's Table",
+  "vatNumber": null,
+  "totalAmount": 5750,
+  "currency": "SAR",
+  "documentDate": "2025-06-10",
+  "cardLast4": "1881",
+  "invoiceNumber": null,
+  "rawText": "THE CHEF'S TABLE TOTAL 57.50 SAR CARD 1881 2025-06-10",
+  "extractionConfidence": 0.9
+}

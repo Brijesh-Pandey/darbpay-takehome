@@ -1,0 +1,12 @@
+{
+  "documentType": "TAX_INVOICE",
+  "merchantName": "Desert Glass Co",
+  "vatNumber": "311111111111113",
+  "totalAmount": 33300,
+  "currency": "SAR",
+  "documentDate": "2025-06-09",
+  "cardLast4": null,
+  "invoiceNumber": "INV-44001",
+  "rawText": "TAX INVOICE INV-44001 Desert Glass Co TOTAL 333.00 SAR 2025-06-09",
+  "extractionConfidence": 0.93
+}

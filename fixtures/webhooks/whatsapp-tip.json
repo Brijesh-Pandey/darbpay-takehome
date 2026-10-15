@@ -1,0 +1,25 @@
+{
+  "entry": [
+    {
+      "changes": [
+        {
+          "value": {
+            "messages": [
+              {
+                "id": "wamid.review.tip",
+                "from": "966551234567",
+                "timestamp": "1749578400",
+                "type": "image",
+                "image": {
+                  "id": "media_tip",
+                  "mime_type": "image/jpeg",
+                  "sha256": "fixture-tip"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

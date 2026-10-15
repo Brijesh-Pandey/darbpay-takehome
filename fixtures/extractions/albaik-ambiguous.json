@@ -1,0 +1,12 @@
+{
+  "documentType": "RECEIPT",
+  "merchantName": "Albaik",
+  "vatNumber": null,
+  "totalAmount": 4800,
+  "currency": "SAR",
+  "documentDate": "2025-06-12",
+  "cardLast4": "4242",
+  "invoiceNumber": null,
+  "rawText": "ALBAIK TOTAL 48.00 SAR CARD 4242 2025-06-12",
+  "extractionConfidence": 0.91
+}

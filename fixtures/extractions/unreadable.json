@@ -1,0 +1,12 @@
+{
+  "documentType": "UNKNOWN",
+  "merchantName": null,
+  "vatNumber": null,
+  "totalAmount": null,
+  "currency": null,
+  "documentDate": null,
+  "cardLast4": null,
+  "invoiceNumber": null,
+  "rawText": "",
+  "extractionConfidence": 0
+}

@@ -1,0 +1,25 @@
+{
+  "entry": [
+    {
+      "changes": [
+        {
+          "value": {
+            "messages": [
+              {
+                "id": "wamid.review.albaik",
+                "from": "966551234567",
+                "timestamp": "1749729600",
+                "type": "image",
+                "image": {
+                  "id": "media_albaik",
+                  "mime_type": "image/jpeg",
+                  "sha256": "fixture-albaik"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

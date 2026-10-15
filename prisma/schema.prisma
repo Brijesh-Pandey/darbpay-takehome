@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum DocumentSource {
+  EMAIL
+  WHATSAPP
+}
+
+enum DocumentStatus {
+  RECEIVED
+  EXTRACTED
+  MATCHED
+  NEEDS_REVIEW
+  UNMATCHED
+  FAILED
+}
+
+enum MatchStatus {
+  CANDIDATE
+  AUTO_CONFIRMED
+  CONFIRMED
+  REJECTED
+}
+
+model Client {
+  id           Int                 @id @default(autoincrement())
+  name         String
+  transactions Transaction[]
+  emailSenders ClientEmailSender[]
+}
+
+model ClientEmailSender {
+  id       Int    @id @default(autoincrement())
+  email    String @unique
+  clientId Int
+  client   Client @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+}
+
+model Transaction {
+  id            Int             @id @default(autoincrement())
+  clientId      Int
+  client        Client          @relation(fields: [clientId], references: [id])
+  cardLast4     String
+  driverPhone   String?
+  merchantName  String
+  amount        Int
+  currency      String          @default("SAR")
+  transactionAt DateTime
+  externalRef   String?         @unique
+  documents     DocumentMatch[]
+
+  @@index([clientId])
+  @@index([driverPhone])
+}
+
+model Document {
+  id                   Int             @id @default(autoincrement())
+  source               DocumentSource
+  externalId           String          @unique
+  scope                String
+  contentHash          String
+  senderIdentifier     String
+  status               DocumentStatus  @default(RECEIVED)
+  statusReason         String?
+  filename             String?
+  mimeType             String
+  content              Bytes
+  documentType         String?
+  merchantName         String?
+  vatNumber            String?
+  totalAmount          Int?
+  currency             String?
+  documentDate         DateTime?
+  cardLast4            String?
+  invoiceNumber        String?
+  rawText              String?
+  extractionConfidence Float?
+  receivedAt           DateTime        @default(now())
+  processingStartedAt  DateTime?
+  matches              DocumentMatch[]
+
+  @@unique([scope, contentHash])
+  @@index([status, receivedAt])
+}
+
+model DocumentMatch {
+  id            Int         @id @default(autoincrement())
+  documentId    Int
+  transactionId Int
+  document      Document    @relation(fields: [documentId], references: [id])
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  confidence    Float
+  signals       Json
+  status        MatchStatus @default(CANDIDATE)
+  decidedBy     String?
+  decidedAt     DateTime?
+
+  @@unique([documentId, transactionId])
+  @@index([transactionId])
+  @@index([documentId, status])
+}

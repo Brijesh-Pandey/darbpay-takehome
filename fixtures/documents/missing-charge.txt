@@ -1,0 +1,2 @@
+synthetic fixture missing-charge
+not a scanned document

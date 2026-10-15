@@ -1,0 +1,2 @@
+synthetic fixture unreadable-scan
+not a scanned document
