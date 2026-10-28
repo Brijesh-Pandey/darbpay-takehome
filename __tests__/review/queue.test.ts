@@ -277,7 +277,9 @@ describe('review queue', () => {
     expect(view.candidates.every((candidate) => candidate.canConfirm === false && candidate.canReject === false)).toBe(
       true,
     );
-    const hidden = JSON.stringify(desk);
-    expect(hidden.includes('Hidden client')).toBe(false);
+    expect(JSON.stringify(desk.needsReview).includes('Hidden client')).toBe(false);
+    expect(JSON.stringify(desk.unmatched).includes('Hidden client')).toBe(false);
+    expect(desk.matched.some((document) => document.merchantName === 'Hidden client')).toBe(true);
+    expect(desk.matched.find((document) => document.merchantName === 'Hidden client')?.actionable).toBe(false);
   });
 });

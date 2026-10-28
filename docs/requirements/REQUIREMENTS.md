@@ -118,7 +118,7 @@ The setup script also installs date-fns, lucide-react, and the shadcn components
 | BON-001 | approved | Bonus | `/review` lists `NEEDS_REVIEW` documents with ranked candidates and confirm/reject controls. | Assignment, bonus. Kept by Q-005. | A reviewer can finish FR-028 and FR-029 from the page. | Browser pass after the API exists |
 | BON-002 | approved | Bonus | When new transactions arrive, matching runs again for `UNMATCHED` documents that can still match. | Assignment, bonus. Kept by Q-005. | A document that was unmatched because the charge did not exist becomes matched or reviewed after the charge is stored. | Service test |
 | BON-003 | proposed | Bonus | Multi-transaction invoices are described in `IMPLEMENTATION.md`. Working code is not required. | Assignment, bonus | The sketch says how several charges would attach, and what would stay human-only. | Document review |
-| BON-004 | proposed | Bonus | A real extractor can sit behind `DocumentExtractor`. The mock stays the default so reviewers need no keys. | Assignment, bonus. Deferred by [ADR 0002](../decisions/0002-defer-hmac-and-live-extractor.md). | Not built before the review page. | Later |
+| BON-004 | approved | Bonus | A real extractor sits behind `DocumentExtractor`. The mock stays the default so `npm test` needs no key and no network. | Assignment, bonus. [ADR 0009](../decisions/0009-tesseract-extractor.md). | `EXTRACTOR=tesseract` reads photos with Apple Vision and a digital PDF by its text layer. Unset stays on the mock. | Stubbed extractor test |
 | BON-005 | proposed | Bonus | HMAC verification on both webhooks. | Assignment, bonus. Deferred by ADR 0002. | Not built before the review page. | Later |
 
 BON-001 and BON-002 are planned work, still `proposed` because they are optional and this documentation pass did not ask to freeze them as commitments. The implementation plan schedules them after the must-haves. Say so if they should be dropped.
@@ -132,7 +132,7 @@ The schema is a suggested starting point. These changes are accepted. They are n
 | DEV-001 | approved | `contentHash` is globally unique. | Unique together with a sender scope. | Two clients can submit the same bytes. A global hash would hide one of them. |
 | DEV-002 | approved | `externalId` is the raw message id. | Email ids are `messageId#attachmentIndex`. | One message can carry several attachments, and the column is unique. |
 | DEV-003 | approved | The sample schema has no partial indexes. | Hand-written partial unique indexes: one confirmed match per transaction, and one per document. | FR-031 requires a database rule. Prisma cannot express a partial index. The per-document index is extra and only fits one-document-to-one-transaction matching. |
-| DEV-004 | approved | No client table is shown. | `Client` and `ClientEmailSender`, integer ids. [ADR 0007](../decisions/0007-email-sender-scope.md). | FR-009 and FR-014 need a place for the email mapping. Ashu's version matches the accepted integer ids and stores an unknown sender as `UNMATCHED`. |
+| DEV-004 | approved | No client table is shown. | `Client` and `ClientEmailSender`, integer ids. [ADR 0007](../decisions/0007-email-sender-scope.md). | FR-009 and FR-014 need a place for the email mapping. Integer ids match ADR 0001. An unknown sender is stored as `UNMATCHED`. |
 | DEV-005 | approved | The sample action uses `.schema()`. | Call `.inputSchema()`. Installed 8.7.3 marks `.schema()` as a deprecated alias. | Phase 6 writes the actions. The alias still typechecks, so the sample would not fail today. |
 
 ## Recommendations
@@ -161,6 +161,9 @@ Visible so they are not mistaken for assignment text.
 | ASM-005 | A 15% pre-VAT gap is not scored in the first matcher. The assignment does not require it, and auto-matching it is rejected in ADR 0004. | Add it later only as a review flag, never as an auto-match. |
 | ASM-006 | Webhooks and `/review` have no authentication in this exercise. | A real deployment would put the portal's auth in front. |
 | ASM-007 | Phone numbers in the sample (`966551234567`) normalize to E.164 (`+966551234567`) before they are compared with `driverPhone`. | Scope checks would miss the seeded driver. |
+| ASM-008 | A blank receipt currency is SAR. Same-currency amounts are minor units of that ISO code. A cross-currency pair is scored only through an official USD peg, flagged `FX`, and cannot auto-match. The stored amounts are not rewritten. | A market rate, or treating a blank currency as "any currency", would attach the wrong money. |
+| ASM-009 | Photos are read with Apple Vision on macOS. A small slip is cropped, and a closer pass fills a VAT number or amount the full page dropped. A faint decimal written as a space is still an amount. A digital PDF uses its text layer and stores confidence 0.59, under the auto-match gate. A scanned PDF is `UNREADABLE`. An ambiguous numeric date is day/month/year, and a two-digit year is 20xx. A VAT or tax total is not the payable amount. | Vision needs macOS. A scanned PDF can still be unread. The merchant line on a bilingual PDF can be the page header. |
+| ASM-010 | `/upload` is an operator shortcut, not a third channel. The file is stored as email from `billing@alfanar-fuel.com.sa` and follows the same ingest, extract, and match path. | A bill from another client would be read as Northline Logistics. |
 
 ## Resolved questions
 
@@ -173,6 +176,8 @@ Accepted on 15 Oct 2026. They no longer block a phase.
 | Q-003 | Partial unique indexes: one confirmed match per transaction, and one per document. | [ADR 0005](../decisions/0005-confirmed-match-constraints.md) |
 | Q-004 | Store file bytes on the document row. Process after the response. | [ADR 0006](../decisions/0006-processing-model.md) |
 | Q-005 | Keep rematch (BON-002) and `/review` (BON-001) after the must-have pipeline. | [IMPLEMENTATION_PLAN.md](../IMPLEMENTATION_PLAN.md) phases 7 and 8 |
+| Q-006 | International amounts stay in their own minor units. Pegged crosses are converted for the score only and go to review. | [ADR 0008](../decisions/0008-currency-minor-units.md) |
+| Q-007 | The live extractor reads photos with Apple Vision. The mock stays the default. | [ADR 0009](../decisions/0009-tesseract-extractor.md) |
 
 DEV-005 and the exact webhook error JSON keys are still open. They do not block phase 1.
 

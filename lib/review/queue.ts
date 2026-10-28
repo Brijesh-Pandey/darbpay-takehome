@@ -42,7 +42,7 @@ export type ReviewCandidateView = {
 
 export type ReviewDocumentView = {
   id: number;
-  status: 'NEEDS_REVIEW' | 'UNMATCHED';
+  status: 'NEEDS_REVIEW' | 'UNMATCHED' | 'MATCHED';
   actionable: boolean;
   sourceLabel: string;
   sender: string;
@@ -58,9 +58,18 @@ export type ReviewDocumentView = {
   extractionConfidence: string;
   filename: string;
   mimeType: string;
+  preview: boolean;
   receivedAt: string;
   candidates: ReviewCandidateView[];
 };
+
+function isPreviewableImage(mimeType: string, content: Uint8Array): boolean {
+  if (!mimeType.startsWith('image/') || content.length < 12) return false;
+  const png = content[0] === 0x89 && content[1] === 0x50 && content[2] === 0x4e && content[3] === 0x47;
+  const jpeg = content[0] === 0xff && content[1] === 0xd8;
+  const webp = content[0] === 0x52 && content[1] === 0x49 && content[2] === 0x46 && content[3] === 0x46;
+  return png || jpeg || webp;
+}
 
 const MATCH_STATUS_LABELS: Record<string, string> = {
   CANDIDATE: 'Open',
@@ -73,19 +82,23 @@ export async function loadReviewQueue(db: PrismaClient): Promise<ReviewDocumentV
   return loadDocuments(db, ['NEEDS_REVIEW']);
 }
 
-export async function loadReviewDesk(
-  db: PrismaClient,
-): Promise<{ needsReview: ReviewDocumentView[]; unmatched: ReviewDocumentView[] }> {
-  const documents = await loadDocuments(db, ['NEEDS_REVIEW', 'UNMATCHED']);
+export async function loadReviewDesk(db: PrismaClient): Promise<{
+  needsReview: ReviewDocumentView[];
+  unmatched: ReviewDocumentView[];
+  matched: ReviewDocumentView[];
+}> {
+  const documents = await loadDocuments(db, ['NEEDS_REVIEW', 'UNMATCHED', 'MATCHED']);
+  const matched = documents.filter((document) => document.status === 'MATCHED');
   return {
     needsReview: documents.filter((document) => document.status === 'NEEDS_REVIEW'),
     unmatched: documents.filter((document) => document.status === 'UNMATCHED'),
+    matched: [...matched].reverse(),
   };
 }
 
 async function loadDocuments(
   db: PrismaClient,
-  statuses: Array<'NEEDS_REVIEW' | 'UNMATCHED'>,
+  statuses: Array<'NEEDS_REVIEW' | 'UNMATCHED' | 'MATCHED'>,
 ): Promise<ReviewDocumentView[]> {
   const rows = await db.document.findMany({
     where: { status: { in: statuses } },
@@ -98,6 +111,7 @@ async function loadDocuments(
       statusReason: true,
       filename: true,
       mimeType: true,
+      content: true,
       documentType: true,
       merchantName: true,
       vatNumber: true,
@@ -167,7 +181,7 @@ async function loadDocuments(
     });
     return {
       id: row.id,
-      status: row.status === 'UNMATCHED' ? 'UNMATCHED' : 'NEEDS_REVIEW',
+      status: row.status === 'UNMATCHED' || row.status === 'MATCHED' ? row.status : 'NEEDS_REVIEW',
       actionable: row.status === 'NEEDS_REVIEW',
       sourceLabel: row.source === 'EMAIL' ? 'Email' : 'WhatsApp',
       sender: row.senderIdentifier,
@@ -183,6 +197,7 @@ async function loadDocuments(
       extractionConfidence: formatScore(row.extractionConfidence),
       filename: missing(row.filename),
       mimeType: row.mimeType,
+      preview: isPreviewableImage(row.mimeType, row.content),
       receivedAt: formatRiyadhDateTime(row.receivedAt),
       candidates,
     };

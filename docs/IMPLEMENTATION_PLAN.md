@@ -249,6 +249,8 @@ Done when: the tests pass.
 
 ## Phase 10: Live extractor
 
+Done. `TesseractExtractor` is behind `DocumentExtractor`. The mock stays the default. ADR 0009.
+
 Goal: BON-004, optional.
 
 Prerequisites: phase 9's position in the order, meaning the review page is done or explicitly skipped. ADR 0002.
@@ -273,7 +275,6 @@ Done when: the stub test passes and the README says the mock is still the defaul
 
 | Risk | Mitigation |
 | --- | --- |
-| An old copy of the plan treated the ADRs as open | ADR 0001 through ADR 0007 are accepted. Follow those files, not `DISCOVERY.md` section 8. |
-| Reference code pasted in | [REFERENCE_ANALYSIS.md](REFERENCE_ANALYSIS.md). Review the diff for large familiar blocks. |
+| An old copy of the plan treated the ADRs as open | ADR 0001 through ADR 0007 are accepted. Follow those files. |
 | `create-next-app` pulling Next.js 16 | Pin the major the assignment names. Check `package.json` before continuing. |
 | README commands that were never run | A phase is not done until its commands have been run and the README matches. |

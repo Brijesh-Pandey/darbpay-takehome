@@ -25,7 +25,7 @@ Accepted:
 | --- | --- |
 | Follow the sample literally: one global `contentHash`, one row per message id | A second attachment cannot be stored. One client's file hides the other's. |
 | Hash only, ignore message id | A redelivery of a different attachment on the same message would look new, and FR-004 would depend on bytes alone. The brief requires both keys. |
-| Unique `(source, messageId, attachmentIndex)` as BetaPundit did, plus scoped hash | Equivalent protection. Slightly farther from the sample's single `externalId` column. The `#index` form keeps that column. |
+| Unique `(source, messageId, attachmentIndex)`, plus a scoped hash | Equivalent protection. Slightly farther from the sample's single `externalId` column. The `#index` form keeps that column. |
 
 ## Consequences
 

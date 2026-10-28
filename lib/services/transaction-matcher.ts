@@ -1,3 +1,5 @@
+import { convertMinorUnits } from '@/lib/money/fx';
+import { canonicalCurrency, DEFAULT_CURRENCY } from '@/lib/money/currencies';
 import { defaultMatchConfig, type MatchConfig } from '@/lib/matching/config';
 import { round4 } from '@/lib/matching/round';
 import { scoreAmount, scoreCard, scoreDate, scoreMerchant } from '@/lib/matching/signals';
@@ -49,9 +51,10 @@ function scoreTransaction(
   config: MatchConfig,
 ): MatchCandidate | null {
   if (!inScope(transaction, scope) || !isUsableTransaction(transaction)) return null;
-  if (currenciesDiffer(doc.currency, transaction.currency)) return null;
+  const priced = priceInChargeCurrency(documentAmount, doc.currency, transaction.currency);
+  if (priced === null) return null;
 
-  const amount = scoreAmount(documentAmount, transaction.amount, config);
+  const amount = scoreAmount(priced.amount, transaction.amount, config);
   if (amount === null) return null;
   const merchant = scoreMerchant(doc.merchantName, transaction.merchantName, config.merchantMinimum);
   if (doc.merchantName !== null && doc.merchantName.trim() !== '' && merchant === null) return null;
@@ -64,6 +67,7 @@ function scoreTransaction(
   if (date !== null) signals.date = date;
 
   const flags: MatchFlag[] = [];
+  if (priced.converted) flags.push('FX');
   if (amount.tip) flags.push('TIP');
   if (card === 0) flags.push('CARD_MISMATCH');
   if (transaction.hasConfirmedDocument) flags.push('ALREADY_CONFIRMED');
@@ -98,6 +102,7 @@ function decide(doc: ExtractedFields, ranked: readonly MatchCandidate[], config:
   const lead = next === undefined ? Number.POSITIVE_INFINITY : round4(top.confidence - next.confidence);
   const date = top.signals.date;
   const blocked =
+    top.flags.includes('FX') ||
     top.flags.includes('TIP') ||
     top.flags.includes('CARD_MISMATCH') ||
     top.flags.includes('ALREADY_CONFIRMED') ||
@@ -118,6 +123,7 @@ function reviewReason(
 ): MatchReason {
   if (ambiguous) return 'AMBIGUOUS';
   if (top.flags.includes('ALREADY_CONFIRMED')) return 'ALREADY_CONFIRMED';
+  if (top.flags.includes('FX')) return 'FX';
   if (top.flags.includes('TIP')) return 'TIP';
   if (top.flags.includes('CARD_MISMATCH')) return 'CARD_MISMATCH';
   if (top.signals.date === 0) return 'DATE_DISAGREES';
@@ -130,9 +136,20 @@ function inScope(transaction: CandidateTransaction, scope: MatchScope): boolean 
   return transaction.driverPhone === scope.driverPhone;
 }
 
-function currenciesDiffer(documentCurrency: string | null, transactionCurrency: string): boolean {
-  if (documentCurrency === null || documentCurrency.trim() === '') return false;
-  return documentCurrency.trim().toUpperCase() !== transactionCurrency.trim().toUpperCase();
+/** Receipt amount in the charge's minor units. A blank receipt currency is SAR. */
+function priceInChargeCurrency(
+  documentAmount: number,
+  documentCurrency: string | null,
+  transactionCurrency: string,
+): { amount: number; converted: boolean } | null {
+  const charge = canonicalCurrency(transactionCurrency);
+  const blank = documentCurrency === null || documentCurrency.trim() === '';
+  const receipt = blank ? DEFAULT_CURRENCY : canonicalCurrency(documentCurrency);
+  if (charge === null || receipt === null) return null;
+  if (receipt === charge) return { amount: documentAmount, converted: false };
+  const converted = convertMinorUnits(documentAmount, receipt, charge);
+  if (converted === null) return null;
+  return { amount: converted, converted: true };
 }
 
 function isUsableAmount(value: number | null): value is number {

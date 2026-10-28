@@ -6,7 +6,7 @@
 
 ## Context
 
-The assignment lists webhook HMAC (BON-005) and a real extractor behind the same interface (BON-004) as bonuses. It also says to cut bonuses before cutting matcher edges or idempotency. The BetaPundit reference implements both. Its Claude path was not verified against the live API. The owner confirmed these two wait until after the review page.
+The assignment lists webhook HMAC (BON-005) and a real extractor behind the same interface (BON-004) as bonuses. It also says to cut bonuses before cutting matcher edges or idempotency. The owner confirmed HMAC waits until after the review page. A hosted model was not verified against a live API, so it is not the extractor.
 
 ## Decision
 

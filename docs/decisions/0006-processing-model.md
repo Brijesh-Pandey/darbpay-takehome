@@ -9,7 +9,7 @@
 
 FR-006 says the webhook must return quickly and must not return 500 because extraction or matching failed. The bytes have to be available after the response, including if the process is still alive and if a duplicate delivery arrives while the first document is still `RECEIVED`.
 
-Ashu stores the bytes on the document row and processes in `after()`. BetaPundit stores them in a content-addressed blob directory, adds a processing lease, and also uses `after()`. A real queue is the production answer both write-ups name and neither require for the exercise.
+The bytes are stored on the document row and processed in `after()`. A separate blob directory and a processing lease are not required for this exercise. A real queue is the production answer, and the assignment does not require one.
 
 ## Decision
 

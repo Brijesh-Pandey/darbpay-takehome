@@ -7,7 +7,7 @@
 
 ## Context
 
-FR-031 requires one confirmed document per transaction at the data layer. FR-028 also leaves one confirmed match on the document being confirmed. Prisma schema language cannot express a partial unique index. Both references appended SQL to the migration by hand. BetaPundit indexed the transaction only. Ashu indexed the transaction and the document.
+FR-031 requires one confirmed document per transaction at the data layer. FR-028 also leaves one confirmed match on the document being confirmed. Prisma schema language cannot express a partial unique index, so both indexes are hand-written SQL in the migration: one on the transaction, and one on the document.
 
 A future statement that covers several charges (BON-003) would need the per-document index dropped. That feature is a sketch, not code.
 

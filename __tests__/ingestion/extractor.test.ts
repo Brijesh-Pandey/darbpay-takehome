@@ -105,6 +105,7 @@ describe('mock extractor', () => {
     if (valid.kind !== 'result') throw new Error('exact fixture should extract');
     expect(() => parseExtractedDocument({ ...valid.result, totalAmount: 125.5 })).toThrow(ExtractionError);
     expect(() => parseExtractedDocument({ ...valid.result, currency: 'sar' })).toThrow(/currency/);
+    expect(() => parseExtractedDocument({ ...valid.result, currency: 'XYZ' })).toThrow(/currency/);
     expect(() => parseExtractedDocument({ ...valid.result, documentDate: '14/06/2025' })).toThrow(/documentDate/);
     expect(() => parseExtractedDocument({ ...valid.result, documentDate: '2025-02-31' })).toThrow(/documentDate/);
     expect(() => parseExtractedDocument({ ...valid.result, cardLast4: '424' })).toThrow(/cardLast4/);

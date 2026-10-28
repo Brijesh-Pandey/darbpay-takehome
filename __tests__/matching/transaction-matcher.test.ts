@@ -247,6 +247,41 @@ describe('matchDocument', () => {
     expect(clear.candidates.map((candidate) => candidate.transactionId)).toContain(4);
   });
 
+  it('auto-matches a dollar receipt against a dollar charge of the same minor units', () => {
+    const result = matchDocument(
+      document({ currency: 'USD', totalAmount: 10000 }),
+      [transaction({ currency: 'USD', amount: 10000 })],
+      emailScope,
+    );
+    expect(result.outcome).toBe('AUTO_MATCHED');
+    expect(result.candidates[0]?.flags).not.toContain('FX');
+  });
+
+  it('sends a dollar receipt against the pegged riyal charge to review', () => {
+    const result = matchDocument(
+      document({ currency: 'USD', totalAmount: 10000 }),
+      [transaction({ currency: 'SAR', amount: 37500 })],
+      emailScope,
+    );
+    expect(result.outcome).toBe('NEEDS_REVIEW');
+    expect(result.reason).toBe('FX');
+    expect(result.candidates[0]?.flags).toContain('FX');
+    expect(result.candidates[0]?.signals.amount).toBe(1);
+  });
+
+  it('drops a euro charge when no peg converts it to riyals', () => {
+    const result = matchDocument(document(), [transaction({ currency: 'EUR', amount: 12500 })], emailScope);
+    expect(result.outcome).toBe('UNMATCHED');
+  });
+
+  it('treats a blank receipt currency as SAR and does not treat an unknown code as SAR', () => {
+    const blank = matchDocument(document({ currency: null }), [transaction()], emailScope);
+    expect(blank.outcome).toBe('AUTO_MATCHED');
+
+    const unknown = matchDocument(document({ currency: 'XYZ' }), [transaction()], emailScope);
+    expect(unknown.outcome).toBe('UNMATCHED');
+  });
+
   it('skips a different currency and an unreadable transaction timestamp', () => {
     const result = matchDocument(
       document(),

@@ -1,6 +1,6 @@
 import { after } from 'next/server';
 import type { PrismaClient } from '@prisma/client';
-import { MockExtractor } from '@/lib/extraction/mock-extractor';
+import { createDocumentExtractor } from '@/lib/extraction/create-extractor';
 import type { DocumentExtractor } from '@/lib/extraction/types';
 import { log } from '@/lib/logger';
 import { getPrisma } from '@/lib/prisma';
@@ -8,8 +8,6 @@ import { ingestEmailRequest } from '@/lib/services/document-ingestion';
 import { processDocument, type ProcessDeps } from '@/lib/services/document-processing';
 
 export const runtime = 'nodejs';
-
-const defaultExtractor = new MockExtractor();
 
 type EmailOverrides = {
   db?: PrismaClient;
@@ -23,7 +21,7 @@ export async function POST(request: Request): Promise<Response> {
 
 export async function handleEmailPost(request: Request, overrides: EmailOverrides = {}): Promise<Response> {
   const db = overrides.db ?? getPrisma();
-  const extractor = overrides.extractor ?? defaultExtractor;
+  const extractor = overrides.extractor ?? createDocumentExtractor();
   return ingestEmailRequest(request, {
     db,
     schedule(documentId) {

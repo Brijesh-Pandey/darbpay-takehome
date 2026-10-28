@@ -52,3 +52,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local recordings, real bills, and scratch notes
+/fixtures/demo/real-bills/
+/fixtures/demo/*.mp4
+/fixtures/demo/video-take/
+/docs/research/
+/docs/code-understanding/

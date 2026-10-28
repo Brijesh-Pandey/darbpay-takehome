@@ -18,6 +18,10 @@ describe('review formatting', () => {
     expect(formatHalalas(0, null)).toBe('SAR 0.00');
     expect(formatHalalas(null, 'SAR')).toBe('Not extracted');
     expect(formatHalalas(12.5, 'SAR')).toBe('Not extracted');
+    expect(formatHalalas(10000, 'USD')).toBe('USD 100.00');
+    expect(formatHalalas(1000, 'JPY')).toBe('JPY 1000');
+    expect(formatHalalas(1500, 'KWD')).toBe('KWD 1.500');
+    expect(formatHalalas(10000, null)).toBe('SAR 100.00');
   });
 
   it('shows a Riyadh calendar date and clock time', () => {

@@ -16,7 +16,14 @@ export default async function ReviewPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const { tab } = await searchParams;
-  const active = tab === "unmatched" ? "unmatched" : "needs-review";
+  const active = tab === "unmatched" ? "unmatched" : tab === "attached" ? "attached" : "needs-review";
   const desk = await loadReviewDesk(getPrisma());
-  return <ReviewBoard active={active} needsReview={desk.needsReview} unmatched={desk.unmatched} />;
+  return (
+    <ReviewBoard
+      active={active}
+      needsReview={desk.needsReview}
+      unmatched={desk.unmatched}
+      matched={desk.matched}
+    />
+  );
 }

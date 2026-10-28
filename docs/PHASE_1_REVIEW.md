@@ -125,18 +125,9 @@ None of these block the pure matcher. Add them before a route writes documents:
 
 ## 4. Version control
 
-| Path | Git |
-| --- | --- |
-| Parent folder | Not a repository |
-| `brijesh/` | Not a repository |
-| `ashu/darb-takehome` | Its own repository, `main` tracking `origin/main` |
-| `darb-takehome` (sibling of `ashu/`) | Its own repository, `main` tracking `origin/main` |
+This directory is the git repository. Do not initialize a repository in the parent folder.
 
-`git status -sb` in both reference repositories printed only the branch line.
-
-Do not run `git init` in the parent folder. That would put both reference checkouts and this app in one repository. Initialize only inside this directory. Do not add the reference directories as submodules unless that is requested.
-
-`.gitignore` already excludes `.env` (and keeps `.env.example`), `prisma/*.db`, `.test-db/`, `node_modules`, and `.next`. The checked-in `.env` contents are only `DATABASE_URL="file:./dev.db"`. There is no secret in it, and it should still stay untracked. Commit `package-lock.json` and `prisma/migrations/` with the first snapshot. Before that commit, run `git status --ignored` and confirm `prisma/dev.db` and `.env` are ignored.
+`.gitignore` excludes `.env` (and keeps `.env.example`), `prisma/*.db`, `.test-db/`, `node_modules`, and `.next`. `.env` holds only `DATABASE_URL="file:./dev.db"`. It stays untracked. Before a commit, run `git status --ignored` and confirm `prisma/dev.db` and `.env` are ignored.
 
 The lockfile pins Next.js 15.5.28, Prisma 6.19.3, Zod 3.25.76, next-safe-action 8.7.3, Jest 29.7.0, and TypeScript 5.9.3. `package.json` still uses `^` on Prisma. Do not upgrade to Prisma 7 to silence the warning about `package.json#prisma`. Prisma 7 removes that seed setting. Stay on 6.19.3 until a deliberate upgrade.
 

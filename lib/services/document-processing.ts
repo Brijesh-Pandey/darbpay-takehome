@@ -1,5 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
-import { MockExtractor } from '@/lib/extraction/mock-extractor';
+import { createDocumentExtractor } from '@/lib/extraction/create-extractor';
 import { parseExtractedDocument } from '@/lib/extraction/schema';
 import { toExtractedFields } from '@/lib/extraction/to-fields';
 import { ExtractionError, type DocumentExtractor } from '@/lib/extraction/types';
@@ -17,12 +17,10 @@ export type ProcessDeps = {
   now: () => Date;
 };
 
-const defaultExtractor = new MockExtractor();
-
 export function defaultProcessDeps(overrides: Partial<ProcessDeps> = {}): ProcessDeps {
   return {
     db: overrides.db ?? getPrisma(),
-    extractor: overrides.extractor ?? defaultExtractor,
+    extractor: overrides.extractor ?? createDocumentExtractor(),
     now: overrides.now ?? (() => new Date()),
   };
 }

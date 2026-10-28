@@ -9,7 +9,7 @@
 
 The assignment requires the five signals, a high threshold for auto-match, review for mid-confidence and near-ties, and a written justification. It does not fix the weights. A wrong auto-attach files the wrong VAT evidence (NFR-006).
 
-Ashu renormalizes missing signals and can still auto-match when the date score is 0. BetaPundit blocks a missing date and low OCR confidence, rounds to 4 decimals, and can auto-match a 15% pre-VAT gap. This ADR takes the first habit and the second project's gates, and rejects pre-VAT auto-match.
+A missing signal is left out of the mean. A missing document date does not by itself block auto-match. Low OCR confidence does. A 15% pre-VAT gap is not an auto-match.
 
 ## Decision
 
@@ -32,27 +32,22 @@ The formula and worked cases are in [TECHNICAL_DESIGN.md](../TECHNICAL_DESIGN.md
 
 ### Missing document date
 
-The first draft of this ADR said a missing date blocks auto-match, and the technical design also said to skip those candidates. Those two sentences disagreed. The owner asked to follow whichever reference is closer to the assignment.
+The first draft of this ADR said a missing date blocks auto-match, and the technical design also said to skip those candidates. Those two sentences disagreed.
 
-| Implementation | What it does | Where |
-| --- | --- | --- |
-| Ashu | `scoreDate` returns null when `documentDate` is missing. The candidate stays. The date is left out of the mean. There is no extra veto. | `ashu/darb-takehome/lib/matching/signals.ts` lines 42–46, used from `lib/services/transaction-matcher.ts` |
-| Aditya (BetaPundit) | A missing date scores 0.5, is flagged `DATE_MISSING`, and auto-match is refused, so the document goes to review if it still clears the floor. | `darb-takehome/lib/matching/signals.ts` lines 60–62 and `lib/services/transaction-matcher.ts` lines 152–168 |
-
-The assignment makes `documentDate` nullable and says a single candidate above the high threshold is auto-matched. It does not add a missing-date veto. Ashu follows that. Aditya's veto is a safer extra rule, not the requirement.
+The assignment makes `documentDate` nullable and says a single candidate above the high threshold is auto-matched. It does not add a missing-date veto.
 
 Accepted rule: a missing or unreadable document date does not drop the candidate and does not by itself force review. The date signal is unavailable. With the weights above, an otherwise exact amount, merchant, and card auto-matches.
 
-A date that is present and scores 0 still blocks auto-match. That is not Ashu. Ashu's own notes say a date score of 0 can still reach 0.85 and auto-match, and they left that in on purpose. Using a present date that disagrees with the charge is what "date proximity" means, so a zero score stays a block. Aditya gets the same practical result for a far date because a zero date pulls his total under 0.85.
+A date that is present and scores 0 still blocks auto-match. A present date that disagrees with the charge is what date proximity is for, so a zero score stays a block.
 
-Pre-VAT is not built. The assignment does not require it, and Aditya's version can auto-match a 15% gap.
+Pre-VAT is not built. The assignment does not require it.
 
 ## Alternatives
 
 | Option | Why it is not the proposal |
 | --- | --- |
-| Ashu's formula unchanged | Stale documents can auto-match. A weak merchant survives on a card hit. |
-| BetaPundit's weights unchanged | A missing card is punished. Pre-VAT can auto-match at about 0.855. |
+| Leave a zero date score inside the mean | A stale document can still clear 0.85. |
+| Punish a missing card, and auto-match a 15% pre-VAT gap | A missing card is not a mismatch. A pre-VAT gap is not proof. |
 | Equal weights | Amount is the fact that is usually exact. The brief treats the others as support. |
 | Auto-match every score above 0.85 with no margin | The two-branch case is exactly a high score with no winner (FR-023). |
 

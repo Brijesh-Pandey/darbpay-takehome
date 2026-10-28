@@ -28,7 +28,11 @@ brijesh/
 │   ├── extraction/
 │   │   ├── types.ts                      Required interface
 │   │   ├── schema.ts                     Zod boundary
-│   │   ├── mock-extractor.ts             Required
+│   │   ├── mock-extractor.ts             Required, and the default
+│   │   ├── tesseract-extractor.ts        EXTRACTOR=tesseract
+│   │   ├── tesseract-reader.ts
+│   │   ├── parse-receipt-text.ts
+│   │   ├── create-extractor.ts
 │   │   ├── fixtures.ts
 │   │   ├── hash.ts
 │   │   └── to-fields.ts                  ExtractedDocument to matcher input
@@ -81,7 +85,9 @@ brijesh/
 | `lib/services/review-decisions.ts` | Confirm and reject. The action file only wraps this. |
 | `lib/extraction/types.ts` | The assignment `ExtractedDocument` and `DocumentExtractor` interfaces. |
 | `lib/extraction/schema.ts` | Zod check before a result is trusted. |
-| `lib/extraction/mock-extractor.ts` | SHA-256 of the bytes to a fixture result. Unknown hash returns `UNKNOWN` and nulls, confidence 0. |
+| `lib/extraction/mock-extractor.ts` | SHA-256 of the bytes to a fixture result. Unknown hash returns `UNKNOWN` and nulls, confidence 0. This is the default. |
+| `lib/extraction/tesseract-extractor.ts` | Live `DocumentExtractor`. Selected by `EXTRACTOR=tesseract`. |
+| `lib/extraction/parse-receipt-text.ts` | OCR or PDF text to the same Zod object. No network. |
 | `lib/extraction/to-fields.ts` | Drops VAT, invoice number, and raw text before `matchDocument`. |
 | `lib/media/fixture-media-store.ts` | Media id to a file under `fixtures/`. The id is not a path. |
 | `prisma/seed.ts` | Two clients, 15 transactions, phones and mailboxes. Does not delete documents (REC-006). |
@@ -121,7 +127,7 @@ Sender scope is a hard filter, not a weighted signal (FR-016). An email candidat
 ### Precedence
 
 1. `documentType === 'UNKNOWN'`, or an amount that is missing, non-finite, non-integer, or not positive: `UNMATCHED`. No throw (FR-027, CON-006).
-2. Drop a transaction that is out of scope, duplicated by an earlier `id`, or unusable (non-integer or non-positive amount, currency differs, `transactionAt` is not a real timestamp). A missing document currency does not drop the row. A missing or unreadable document date does not drop the row (ADR 0004).
+2. Drop a transaction that is out of scope, duplicated by an earlier `id`, or unusable (non-integer or non-positive amount, unknown currency, `transactionAt` is not a real timestamp). A missing document currency is treated as SAR. The same currency is scored in that currency's minor units. A different currency is converted through an official USD peg and flagged `FX`, which blocks auto-match. A pair with no peg is dropped (ADR 0008). A missing or unreadable document date does not drop the row (ADR 0004).
 3. Score amount, then merchant, then card, then date. Drop the candidate when the amount is outside the bands below, or the merchant score is below 0.25. A card hit does not keep that merchant.
 4. Combine the available signals and round to 4 decimal places before any comparison (REC-001).
 5. Keep scores at or above 0.50, best first, at most 5. Equal scores break toward the smaller transaction id.
@@ -228,7 +234,7 @@ The files under `fixtures/documents/` are short synthetic text. They are not pho
 | `unreadable` | `UNKNOWN`, null amount | `UNMATCHED`, `UNKNOWN_DOCUMENT` |
 | `unreadable-scan` | Throws | No matcher call. Storing `FAILED` is phase 4 |
 
-Replacing the mock means a new class with `extract(file, mimeType)`. Callers keep the `DocumentExtractor` type. `MockExtractor` stays the default (ADR 0002).
+`TesseractExtractor` implements the same `extract(file, mimeType)` method. `createDocumentExtractor` returns it only when `EXTRACTOR=tesseract`. The mock stays the default (ADR 0002, ADR 0009). Photos use Apple Vision on macOS. A digital PDF uses its text layer at confidence 0.59. A scanned PDF is `UNREADABLE`. A VAT total is not the payable amount.
 
 ## Data model
 

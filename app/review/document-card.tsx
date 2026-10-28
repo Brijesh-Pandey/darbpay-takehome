@@ -12,7 +12,10 @@ export function DocumentCard({ document, busy, onDecide }: DocumentCardProps) {
   const statusLabel =
     document.status === "NEEDS_REVIEW"
       ? `Needs review · ${document.openCandidateCount} open ${candidateWord}`
-      : "Unmatched";
+      : document.status === "MATCHED"
+        ? "Attached"
+        : "Unmatched";
+  const preview = document.preview;
   return (
     <article className="rounded-lg border border-line bg-card p-5" aria-labelledby={`document-${document.id}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -37,7 +40,22 @@ export function DocumentCard({ document, busy, onDecide }: DocumentCardProps) {
           value={document.filename === "Not extracted" ? document.mimeType : `${document.filename} · ${document.mimeType}`}
         />
       </dl>
-      <p className="mt-4 text-xs leading-5 text-muted">The stored file is a text fixture, so there is no image preview.</p>
+      {preview ? (
+        <>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`/api/documents/${document.id}/file`}
+            alt={`Invoice file for ${heading}`}
+            className="mt-4 max-h-96 w-full rounded-md border border-line bg-canvas object-contain object-left"
+          />
+        </>
+      ) : (
+        <p className="mt-4 text-xs leading-5 text-muted">
+          {document.mimeType === "application/pdf"
+            ? "This file is a PDF. The fields above are what was read from it."
+            : "The stored file has no image preview."}
+        </p>
+      )}
       <h3 className="mt-6 text-sm font-semibold">Candidates</h3>
       {document.candidates.length === 0 ? (
         <p className="mt-2 text-sm text-muted">This document has no stored candidates.</p>
@@ -168,6 +186,8 @@ function CandidateComparison({
             </p>
           ) : null}
         </div>
+      ) : candidate.status === "AUTO_CONFIRMED" ? (
+        <p className="mt-4 text-sm text-muted">This charge was attached automatically.</p>
       ) : (
         <p className="mt-4 text-sm text-muted">This candidate is not open for a decision.</p>
       )}

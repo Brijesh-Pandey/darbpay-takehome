@@ -19,9 +19,7 @@ npm run lint
 
 `DATABASE_URL="file:./dev.db"` in `.env`. The SQLite file is `prisma/dev.db`. The seed printed `{"clients":2,"emailSenders":2,"transactions":15}` on the first run and on the second. `npm test` printed 6 passed. `tsc` and `eslint` exited 0.
 
-Do not copy `package.json` or source from `ashu/darb-takehome` or the sibling `darb-takehome`.
-
-Reference checkouts are read-only. Do not install, format, or commit inside them.
+Do not copy `package.json` or source from another take-home checkout. Rewrite any idea that is reused.
 
 ## Code organization
 

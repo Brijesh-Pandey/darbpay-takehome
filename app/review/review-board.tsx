@@ -9,16 +9,18 @@ import { outcomeFromAction, type ReviewNotice } from "@/lib/review/format";
 import type { ReviewDocumentView } from "@/lib/review/queue";
 import { DocumentCard } from "./document-card";
 
-type ReviewTab = "needs-review" | "unmatched";
+type ReviewTab = "needs-review" | "unmatched" | "attached";
 
 export function ReviewBoard({
   active,
   needsReview,
   unmatched,
+  matched,
 }: {
   active: ReviewTab;
   needsReview: ReviewDocumentView[];
   unmatched: ReviewDocumentView[];
+  matched: ReviewDocumentView[];
 }) {
   const router = useRouter();
   const confirm = useAction(confirmMatch);
@@ -29,7 +31,7 @@ export function ReviewBoard({
   const [reloadNote, setReloadNote] = useState<string | null>(null);
   const lock = useRef(false);
   const busy = pending || isRefreshing || confirm.isPending || reject.isPending;
-  const documents = active === "unmatched" ? unmatched : needsReview;
+  const documents = active === "unmatched" ? unmatched : active === "attached" ? matched : needsReview;
 
   function reloadQueue() {
     setReloadNote(null);
@@ -66,8 +68,8 @@ export function ReviewBoard({
         <div className="max-w-2xl">
           <h1 className="text-2xl font-semibold tracking-tight">Review desk</h1>
           <p className="mt-2 text-sm leading-6 text-muted">
-            Confirm or reject a candidate while it is still open. Unmatched documents stay visible so a rejected
-            receipt, or one with no close charge, is not lost.
+            Confirm or reject a candidate while it is still open. Attached receipts were matched automatically.
+            Unmatched documents stay visible so a rejected receipt, or one with no close charge, is not lost.
           </p>
         </div>
         <div className="flex flex-col items-start gap-1.5">
@@ -92,6 +94,12 @@ export function ReviewBoard({
       </header>
       <nav aria-label="Document status" className="flex flex-wrap gap-1 border-b border-line">
         <TabLink href="/review" selected={active === "needs-review"} count={needsReview.length} label="Needs review" />
+        <TabLink
+          href="/review?tab=attached"
+          selected={active === "attached"}
+          count={matched.length}
+          label="Attached"
+        />
         <TabLink
           href="/review?tab=unmatched"
           selected={active === "unmatched"}
@@ -149,6 +157,16 @@ function TabLink({
 }
 
 function EmptyState({ tab }: { tab: ReviewTab }) {
+  if (tab === "attached") {
+    return (
+      <div className="rounded-lg border border-dashed border-line bg-card px-6 py-14 text-center">
+        <p className="text-base font-semibold">No attached receipts</p>
+        <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
+          A receipt that matches one charge clearly is attached on its own and listed here.
+        </p>
+      </div>
+    );
+  }
   if (tab === "unmatched") {
     return (
       <div className="rounded-lg border border-dashed border-line bg-card px-6 py-14 text-center">

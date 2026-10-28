@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isKnownCurrency } from '@/lib/money/currencies';
 import { ExtractionError, type ExtractedDocument } from '@/lib/extraction/types';
 
 const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -32,6 +33,7 @@ export const extractedDocumentSchema = z
       .string()
       .trim()
       .regex(/^[A-Z]{3}$/)
+      .refine(isKnownCurrency, 'Unknown currency')
       .nullable(),
     documentDate: z.string().trim().refine(isIsoDocumentDate, 'Expected an ISO 8601 date').nullable(),
     cardLast4: z

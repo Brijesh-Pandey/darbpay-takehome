@@ -2,7 +2,7 @@ export type DocumentKind = 'RECEIPT' | 'TAX_INVOICE' | 'UNKNOWN';
 
 export type SignalName = 'amount' | 'merchant' | 'cardLast4' | 'date';
 
-export type MatchFlag = 'TIP' | 'CARD_MISMATCH' | 'ALREADY_CONFIRMED';
+export type MatchFlag = 'TIP' | 'CARD_MISMATCH' | 'ALREADY_CONFIRMED' | 'FX';
 
 export type MatchOutcome = 'AUTO_MATCHED' | 'NEEDS_REVIEW' | 'UNMATCHED';
 
@@ -17,7 +17,8 @@ export type MatchReason =
   | 'CARD_MISMATCH'
   | 'DATE_DISAGREES'
   | 'LOW_EXTRACTION_CONFIDENCE'
-  | 'BELOW_THRESHOLD';
+  | 'BELOW_THRESHOLD'
+  | 'FX';
 
 export type ExtractedFields = {
   documentType: DocumentKind;

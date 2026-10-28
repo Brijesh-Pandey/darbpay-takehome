@@ -10,12 +10,17 @@ export default function HomePage() {
         automatically. The review desk holds everything that still needs a person, and anything that could not be
         attached.
       </p>
-      <Link
-        href="/review"
-        className="mt-8 inline-flex rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-white"
-      >
-        Open review desk
-      </Link>
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Link href="/upload" className="inline-flex rounded-md bg-accent px-4 py-2.5 text-sm font-semibold text-white">
+          Upload a bill
+        </Link>
+        <Link
+          href="/review"
+          className="inline-flex rounded-md border border-line bg-card px-4 py-2.5 text-sm font-semibold"
+        >
+          Open review desk
+        </Link>
+      </div>
       <dl className="mt-12 divide-y divide-line border-y border-line">
         <div className="grid gap-1 py-4 sm:grid-cols-[10rem_1fr] sm:gap-6">
           <dt className="text-sm font-semibold">Needs review</dt>

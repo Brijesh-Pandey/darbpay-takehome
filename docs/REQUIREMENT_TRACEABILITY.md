@@ -82,7 +82,7 @@ Specification links are the requirement rows. Design links are the planning docs
 | BON-001 | verified | Assignment bonus | USER_FLOWS Flow C | `app/review/page.tsx` | 8 | Browser pass on an isolated database, 15 Oct 2026 | No authentication |
 | BON-002 | verified | Assignment bonus | USER_FLOWS Flow F | `lib/services/rematch.ts`, `app/api/transactions/route.ts` | 7 | Early receipt becomes `MATCHED` after the charge, 15 Oct 2026 | REC-003 is not implemented |
 | BON-003 | proposed | Assignment bonus | Phase 2 task | root `IMPLEMENTATION.md` | 2 | Sketch is in the guide | Code is not built |
-| BON-004 | proposed | Assignment bonus | [ADR 0002](decisions/0002-defer-hmac-and-live-extractor.md) | Second extractor | 10 | Stub test, mock stays default | Deferred on purpose |
+| BON-004 | verified | Assignment bonus | [ADR 0009](decisions/0009-tesseract-extractor.md) | `TesseractExtractor` | 10 | Stubbed reader in `npm test`, 27 Oct 2026, 20 suites, 184 tests. Mock stays the default. A manual Vision read of the two station photos returned amount, date, VAT number, and invoice number. | Photos need macOS. A scanned PDF is not read. |
 | BON-005 | proposed | Assignment bonus | ADR 0002 | Webhook routes | 9 | Forged-signature test | Deferred on purpose |
 | DEV-001 | verified | Our schema note | [ADR 0003](decisions/0003-idempotency-keys.md) | `Document` unique key | 1 | `@@unique([scope, contentHash])` in the applied migration | Two-sender insert is an ingestion test |
 | DEV-002 | implemented | Our schema note | ADR 0003 | `externalId` column | 1 | Column is unique | The `#index` value is written by ingestion in phase 4 |
@@ -91,10 +91,10 @@ Specification links are the requirement rows. Design links are the planning docs
 | DEV-005 | verified | Library API | REQUIREMENTS | `lib/actions/review.ts` | 6 | `.inputSchema()` on both actions, 15 Oct 2026 | — |
 | REC-001 | verified | Reference review | ADR 0004 | `config.ts` | 2 | Confidence is rounded before the 0.10 lead check | — |
 | REC-002 | verified | Reference review | ADR 0004 | Matcher gates | 2 | Missing date auto-matches. A present date scoring 0 goes to review. | — |
-| REC-003 | proposed | BetaPundit review | TECHNICAL_DESIGN | `match-persistence.ts` | 6 | Offer-withdrawal test | Optional inside phase 6 |
+| REC-003 | proposed | Review persistence | TECHNICAL_DESIGN | `match-persistence.ts` | 6 | Offer-withdrawal test | Optional inside phase 6 |
 | REC-004 | approved | Reference review | [ADR 0006](decisions/0006-processing-model.md) | `document-processing.ts` | 4, 5 | Double-processor test | — |
 | REC-005 | verified | Type safety | TEST_STRATEGY | `tsconfig.json` | 1 | `noUncheckedIndexedAccess` and `tsc` | — |
-| REC-006 | verified | Ashu seed bug | IMPLEMENTATION_PLAN | `prisma/seed.ts` | 1 | Seed-twice test, 15 Oct 2026 | — |
+| REC-006 | verified | Seed must not delete documents | IMPLEMENTATION_PLAN | `prisma/seed.ts` | 1 | Seed-twice test, 15 Oct 2026 | — |
 
 ## Assumptions
 
@@ -102,7 +102,7 @@ Assumptions are not requirements and have no implementation status. They are ASM
 
 ## Traceability gaps
 
-Closed on 15 Oct 2026: Q-001 through Q-005, ADR 0003 through ADR 0007. A missing document date follows Ashu and can auto-match. Email scope follows Ashu's `Client` and `ClientEmailSender`, and an unknown sender is stored as `UNMATCHED`.
+Closed on 15 Oct 2026: Q-001 through Q-005, ADR 0003 through ADR 0007. A missing document date can auto-match. Email scope uses `Client` and `ClientEmailSender`, and an unknown sender is stored as `UNMATCHED`.
 
 Still open:
 

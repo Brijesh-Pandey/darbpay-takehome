@@ -1,4 +1,5 @@
 import type { DocumentStatus } from '@prisma/client';
+import { canonicalCurrency, DEFAULT_CURRENCY, minorUnitExponent } from '@/lib/money/currencies';
 import type { DecisionStatus } from '@/lib/services/review-decisions';
 
 const RIYADH = 'Asia/Riyadh';
@@ -7,6 +8,7 @@ const REASON_LABELS: Record<string, string> = {
   AMBIGUOUS: 'Two candidates scored too close to choose automatically.',
   ALREADY_CONFIRMED: 'The leading transaction already has a confirmed document.',
   TIP: 'The receipt amount and the card charge differ by about a tip.',
+  FX: 'The receipt and the charge use different currencies. Confirm the converted amount.',
   CARD_MISMATCH: 'The card on the receipt does not match the charge.',
   DATE_DISAGREES: 'The receipt date and the charge date are far apart.',
   LOW_EXTRACTION_CONFIDENCE: 'The extraction confidence is too low to attach automatically.',
@@ -16,10 +18,12 @@ const REASON_LABELS: Record<string, string> = {
   NO_CANDIDATE: 'No charge in this sender scope was close enough.',
   UNKNOWN_SENDER: 'The sender is not a known client or driver.',
   ALL_CANDIDATES_REJECTED: 'Every candidate was rejected.',
+  AUTO: 'The receipt matched one charge clearly, so it was attached.',
 };
 
 const FLAG_LABELS: Record<string, string> = {
   TIP: 'Tip or similar amount gap',
+  FX: 'Converted into the charge currency',
   CARD_MISMATCH: 'Card does not match',
   ALREADY_CONFIRMED: 'Transaction already confirmed',
 };
@@ -52,12 +56,17 @@ export function missing(value: string | null | undefined): string {
 
 export function formatHalalas(amount: number | null, currency: string | null): string {
   if (amount === null || !Number.isInteger(amount)) return MISSING;
-  const code = currency === null || currency.trim() === '' ? 'SAR' : currency;
+  const blank = currency === null || currency.trim() === '';
+  const code = blank ? DEFAULT_CURRENCY : currency.trim().toUpperCase();
+  const exponent = canonicalCurrency(code) === null ? null : minorUnitExponent(code);
   const sign = amount < 0 ? '-' : '';
   const absolute = Math.abs(amount);
-  const major = Math.floor(absolute / 100);
-  const minor = absolute % 100;
-  return `${sign}${code} ${major}.${minor.toString().padStart(2, '0')}`;
+  if (exponent === null) return `${sign}${code} ${absolute}`;
+  if (exponent === 0) return `${sign}${code} ${absolute}`;
+  const scale = 10 ** exponent;
+  const major = Math.floor(absolute / scale);
+  const minor = absolute % scale;
+  return `${sign}${code} ${major}.${minor.toString().padStart(exponent, '0')}`;
 }
 
 export function formatRiyadhDate(value: Date): string {

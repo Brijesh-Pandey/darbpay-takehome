@@ -29,9 +29,9 @@ A single Next.js application that:
 - Authentication and reviewer identity. See assumption ASM-006.
 - Multi-transaction invoices as working software. A design sketch is enough (BON-003).
 - Microservices, a separate queue, or Postgres.
-- Copying code from `ashu/darb-takehome` or the sibling `darb-takehome` checkout. Neither repository has a license.
+- Copying source from another take-home checkout.
 
-HMAC (BON-005) and a live extractor (BON-004) are in scope only after the review page. That deferral is accepted. They are not part of the first working milestone.
+HMAC (BON-005) stays deferred. The live extractor (BON-004) was added after the review page. Photos use Apple Vision, and it stays off unless `EXTRACTOR=tesseract` ([ADR 0009](decisions/0009-tesseract-extractor.md)).
 
 ## Consumers
 
@@ -49,7 +49,7 @@ There is no end-driver UI. Drivers and suppliers stay outside the system and sho
 
 In scope: the webhook pipeline, the mock extractor, the matcher, persistence, the database rule of one confirmed document per transaction, tests for the required edges, and the two assignment write-ups.
 
-`/review` and rematch-on-new-transaction are built. Out of scope until a later phase: HMAC and a live extractor.
+`/review`, rematch-on-new-transaction, and an optional Tesseract extractor are built. HMAC is still out of scope.
 
 If time runs short, the assignment says to cut the review page and the bonuses, not the matcher edges or webhook idempotency (NFR-007).
 
@@ -91,6 +91,6 @@ Match statuses: `CANDIDATE`, `AUTO_CONFIRMED`, `CONFIRMED`, `REJECTED`.
 
 | Fact today | Plan |
 | --- | --- |
-| `brijesh/` contains this documentation and [DISCOVERY.md](../DISCOVERY.md) | A Next.js app will be added only after the plan is approved |
+| `brijesh/` contains this documentation | The Next.js app is in this directory |
 | No `package.json`, no Prisma schema, no tests | Phases in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) |
 | Reference apps exist outside this directory and are read-only | Behavior we keep is rewritten here |

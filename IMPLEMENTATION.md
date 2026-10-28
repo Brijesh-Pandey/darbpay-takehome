@@ -108,7 +108,7 @@ flowchart TD
   drop --> rank[Keep 0.50 and above, best five, lower id on a tie]
   rank --> empty{Any left?}
   empty -->|no| unmatched
-  empty -->|yes| review{Tie, tip, card clash, confirmed, far date, or weak OCR?}
+  empty -->|yes| review{Tie, FX, tip, card clash, confirmed, far date, or weak OCR?}
   review -->|yes| needs[NEEDS_REVIEW]
   review -->|no| high{Score at least 0.85 and lead greater than 0.10?}
   high -->|yes| auto[AUTO_MATCHED]
@@ -128,11 +128,19 @@ All of these are `defaultMatchConfig` in `lib/matching/config.ts`.
 | Review floor | 0.50. At most 5 candidates. |
 | Extraction confidence | At least 0.60, or the result stays in review. |
 | Tip | Charge above the receipt by at most 20% scores 0.5, flag `TIP`, and cannot auto-match. |
-| Rounding | The larger of 5 halalas and 1% of the document amount scores 0.9. Checked before the tip. |
+| Rounding | The larger of 5 minor units and 1% of the compared amount scores 0.9. Checked before the tip. For SAR, 5 minor units are 5 halalas. |
 | Merchant | Below 0.25 the candidate is dropped, even when the card matches. |
 | Date | Riyadh calendar day, UTC+3, no daylight saving. Same day is 1. A gap of 1 to 7 days is `1 - dayGap / 8`. Day 8 and after is 0, which blocks auto-match. A missing date is left out and does not block. |
 
 A charge below the receipt, outside the rounding band, is a different purchase and is dropped. A 15% gap is not detected as pre-VAT. It falls inside the 20% band, so it is flagged as a tip and cannot auto-match.
+
+### Currencies
+
+Amounts stay integers in that currency's minor units. `100.00 USD` is `10000` cents. `1000 JPY` is `1000`. `1.500 KWD` is `1500` fils. A blank receipt currency is SAR. An unknown code is dropped, and the charge API rejects it.
+
+The same currency is scored as before and can auto-match. A USD receipt and a USD charge never pass through a rate.
+
+A different currency is converted only for `scoreAmount`, and only when both sides have an official US dollar peg in `lib/money/fx.ts`. The peg used here is 1 USD = 3.75 SAR, so `10000` cents becomes `37500` halalas. The stored receipt and the stored charge keep their original amounts. The candidate is flagged `FX` and cannot auto-match, because a bank spread can make a true pair look slightly off. EUR, GBP, and JPY have no peg in this table, so a euro receipt does not rank against a riyal charge. [ADR 0008](docs/decisions/0008-currency-minor-units.md).
 
 ### Why these numbers
 
@@ -161,6 +169,9 @@ There is no labelled production set. Later, confirm and reject rates would be th
 | Date 7 days away, everything else exact | `AUTO_MATCHED`, date score 0.125 |
 | Date 8 or more days away, everything else exact | `NEEDS_REVIEW` |
 | 21:00 UTC on 14 Jun 2025 | Next calendar day in Riyadh |
+| Receipt and charge both 100.00 USD | `AUTO_MATCHED`. No conversion |
+| Receipt 100.00 USD, charge 375.00 SAR | `NEEDS_REVIEW`, amount 1, flag `FX` |
+| Receipt in EUR, charge in SAR | `UNMATCHED`. No peg |
 
 ### Multi-invoice sketch
 
@@ -178,7 +189,9 @@ The MIME type is not the lookup key. `fixtures/media-map.json` stores the type a
 
 A second file, `alfanar-second-photo`, extracts to the same fields as `exact-alfanar` and has a different hash. Identical extraction is not deduplication. Deduplication of the same bytes is phase 4.
 
-A live extractor replaces `MockExtractor` with another class that has the same `extract` method. The mock stays the default so the tests run without an API key.
+`TesseractExtractor` has the same `extract` method. `createDocumentExtractor` returns it only when `EXTRACTOR=tesseract`. The mock stays the default, so `npm test` does not download a model and does not call the network.
+
+Set `EXTRACTOR=tesseract` in the environment and restart the server to read a real photo. JPEG, PNG, WEBP, and BMP go through Apple Vision on macOS. The first call compiles a small reader into the OS temp directory. A digital PDF is read from its text layer and stored at confidence 0.59, under the auto-match gate. A scanned PDF, with no text layer, becomes `FAILED` / `UNREADABLE`. Send a photo of that page instead. The sample webhook files are synthetic text. Leave `EXTRACTOR` unset when you post them. Details are in [ADR 0009](docs/decisions/0009-tesseract-extractor.md).
 
 Email and WhatsApp tests call `POST` on the route. Jest replaces `after()` so the real `processDocument` finishes before the assertion. The dev-server curls below do not replace `after()`.
 
@@ -285,11 +298,15 @@ sequenceDiagram
 
 ## Review queue
 
-`/review` loads documents whose status is `NEEDS_REVIEW` or `UNMATCHED`, with their match rows and those rows' transactions, in one query, then splits them into two lists. Needs review is the only list with confirm and reject. Unmatched is read-only, including a leftover `CANDIDATE` row, because confirm requires `NEEDS_REVIEW`. Amounts are integer halalas shown as currency. Dates use the Riyadh calendar. Missing extraction is the text "Not extracted". Stored fixture bytes are not drawn as images. The page says no preview is shown.
+`/review` loads documents whose status is `NEEDS_REVIEW`, `MATCHED`, or `UNMATCHED`, with their match rows and those rows' transactions, in one query, then splits them into three lists. Needs review is the only list with confirm and reject. Attached shows a receipt the matcher confirmed on its own. Unmatched is read-only, including a leftover `CANDIDATE` row, because confirm requires `NEEDS_REVIEW`. Amounts are integer minor units shown with the currency code. Dates use the Riyadh calendar. Missing extraction is the text "Not extracted". An image MIME type is drawn from `/api/documents/[id]/file`. A text fixture says no preview is shown.
 
 Confirm and reject submit `{ matchId }` to `confirmMatch` and `rejectMatch`. The browser does not decide whether a row may change. A candidate that is not `CANDIDATE`, and a confirm button for a transaction that already has a confirmation, are not offered. While a request is in flight, the buttons are disabled. Success is shown only when the action returns `CONFIRMED` or `REJECTED`. `CONFLICT`, `ALREADY_CONFIRMED`, `ALREADY_REJECTED`, and `NOT_FOUND` stay on the page and tell the reviewer to refresh. An unexpected failure says the decision was not saved. After a returned decision the route is revalidated and the page refreshes from the database.
 
 The browser pass is recorded in [README.md](README.md). It used an isolated database. `prisma/dev.db` still holds the email document and the WhatsApp document from phases 4 and 5.
+
+## Upload desk
+
+`/upload` accepts a PNG, JPEG, WEBP, or PDF, or one of the two demo photos. `POST /api/uploads` and `POST /api/uploads/example` validate the file, then call the email ingestion path with sender `billing@alfanar-fuel.com.sa` (ASM-010). Processing still runs in `after()`. The page polls `GET /api/documents/[id]/status` until the document leaves `RECEIVED` or `EXTRACTED`, then shows the text Tesseract read, the amount in the receipt currency, and the charge it was scored against. A same-currency auto-match and a pegged cross-currency review use that one screen. The desk does not score and does not confirm.
 
 ## Adding a feature
 
@@ -307,7 +324,7 @@ The browser pass is recorded in [README.md](README.md). It used an isolated data
 
 ## Limitations
 
-- The extractor is a fixture lookup, not OCR. A confirmed charge's competing candidates on other documents are not withdrawn. The review page can reject that leftover candidate. It does not withdraw it automatically.
+- The default extractor is a fixture lookup. `EXTRACTOR=tesseract` reads photos with Apple Vision on macOS, and digital PDFs by their text layer. It does not read a scanned PDF. A confirmed charge's competing candidates on other documents are not withdrawn. The review page can reject that leftover candidate. It does not withdraw it automatically.
 - A WhatsApp message with no resolvable image bytes is acknowledged and not stored. A crash after the 200 still leaves a stored row `RECEIVED` until that message is posted again.
 - The email response is sent before matching finishes. A crash after the response leaves the row `RECEIVED` until the same message is posted again.
 - The fixture files are synthetic text. A real image is not in the repository.
@@ -315,4 +332,5 @@ The browser pass is recorded in [README.md](README.md). It used an isolated data
 - `npx jest` without `--runInBand` can collide on the schema test's single database file.
 - Merchant similarity is Latin text only. Arabic names are not folded.
 - A 15% VAT gap is flagged as a tip, not as VAT.
+- Cross-currency scoring uses official dollar pegs only. EUR, GBP, and JPY are stored and can match themselves. They are not converted into riyals.
 - `brijesh/` is not a git repository. Initialize git only here, not in the parent folder.

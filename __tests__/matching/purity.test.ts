@@ -8,6 +8,8 @@ const matcherFiles = [
   'lib/matching/similarity.ts',
   'lib/matching/signals.ts',
   'lib/matching/round.ts',
+  'lib/money/currencies.ts',
+  'lib/money/fx.ts',
   'lib/services/transaction-matcher.ts',
 ];
 

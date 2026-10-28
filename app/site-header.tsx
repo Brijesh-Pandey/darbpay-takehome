@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 export function SiteHeader() {
   const pathname = usePathname();
   const onReview = pathname.startsWith("/review");
+  const onUpload = pathname.startsWith("/upload");
   return (
     <header className="flex items-center justify-between gap-4 border-b border-line pb-4">
       <Link href="/" className="flex items-center gap-2 text-sm font-semibold tracking-wide">
@@ -26,6 +27,13 @@ export function SiteHeader() {
           className={pathname === "/" ? "rounded-md bg-white px-3 py-1.5 font-semibold" : "rounded-md px-3 py-1.5 text-muted"}
         >
           Overview
+        </Link>
+        <Link
+          href="/upload"
+          aria-current={onUpload ? "page" : undefined}
+          className={onUpload ? "rounded-md bg-white px-3 py-1.5 font-semibold" : "rounded-md px-3 py-1.5 text-muted"}
+        >
+          Upload
         </Link>
         <Link
           href="/review"

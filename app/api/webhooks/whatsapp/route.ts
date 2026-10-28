@@ -1,6 +1,6 @@
 import { after } from 'next/server';
 import type { PrismaClient } from '@prisma/client';
-import { MockExtractor } from '@/lib/extraction/mock-extractor';
+import { createDocumentExtractor } from '@/lib/extraction/create-extractor';
 import type { DocumentExtractor } from '@/lib/extraction/types';
 import { log } from '@/lib/logger';
 import { FixtureMediaStore } from '@/lib/media/fixture-media-store';
@@ -11,7 +11,6 @@ import { processDocument, type ProcessDeps } from '@/lib/services/document-proce
 
 export const runtime = 'nodejs';
 
-const defaultExtractor = new MockExtractor();
 const defaultMediaStore = new FixtureMediaStore();
 
 type WhatsAppOverrides = {
@@ -27,7 +26,7 @@ export async function POST(request: Request): Promise<Response> {
 
 export async function handleWhatsAppPost(request: Request, overrides: WhatsAppOverrides = {}): Promise<Response> {
   const db = overrides.db ?? getPrisma();
-  const extractor = overrides.extractor ?? defaultExtractor;
+  const extractor = overrides.extractor ?? createDocumentExtractor();
   const mediaStore = overrides.mediaStore ?? defaultMediaStore;
   return ingestWhatsAppRequest(request, {
     db,

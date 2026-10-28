@@ -26,7 +26,7 @@ flowchart LR
   app --> db
 ```
 
-There is no external OCR, no Meta Graph call, and no SMTP server in the planned first build. Bonus HMAC and a live extractor are later processes in front of the same routes ([ADR 0002](decisions/0002-defer-hmac-and-live-extractor.md)).
+The default extractor is still the fixture lookup. `EXTRACTOR=tesseract` reads photos with Apple Vision and a digital PDF by its text layer ([ADR 0009](decisions/0009-tesseract-extractor.md)). There is no Meta Graph call and no SMTP server. HMAC remains later ([ADR 0002](decisions/0002-defer-hmac-and-live-extractor.md)).
 
 ## Components
 
@@ -100,6 +100,8 @@ flowchart TB
 | Fixture media store | Media id to a file under `fixtures/` | The map file | The network |
 
 `/review` lists `NEEDS_REVIEW` documents with confirm and reject (BON-001, FR-028, FR-029) and lists `UNMATCHED` documents without those actions. Rematch runs when `POST /api/transactions` stores a charge (BON-002). The page does not score or change a row on its own.
+
+`/upload` is an operator shortcut (ASM-010). It stores the file as email from the seeded Alfanar mailbox and uses the same ingestion path. It is not a third source.
 
 ## Dependency direction
 
@@ -227,4 +229,4 @@ SQLite has one writer. The planned test runner uses one worker or one connection
 
 Planned: `next dev` or `next start` on one machine, SQLite file from `DATABASE_URL`, fixtures read from disk. No containers. No hosted environment.
 
-Relative `file:` URLs have failed under Next's bundled server in the BetaPundit repo, because Prisma resolved them from a `.next` chunk directory. If that appears here, resolve the path to an absolute file URL before constructing the client. That fix is conditional. It is not part of the design until it is observed.
+A relative `file:` URL can be resolved from a `.next` chunk directory under the bundled server. If that appears, resolve the path to an absolute file URL before constructing the client. That fix is conditional. It is not part of the design until it is observed.

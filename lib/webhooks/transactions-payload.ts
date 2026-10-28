@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isKnownCurrency } from '@/lib/money/currencies';
 
 export const MAX_TRANSACTIONS = 20;
 export const MAX_TRANSACTIONS_BODY_CHARS = 1024 * 1024;
@@ -14,6 +15,7 @@ const chargeSchema = z.object({
     .string()
     .regex(/^[A-Za-z]{3}$/)
     .transform((code) => code.toUpperCase())
+    .refine(isKnownCurrency, 'Unknown currency')
     .optional(),
   transactionAt: z.string().datetime(),
 });

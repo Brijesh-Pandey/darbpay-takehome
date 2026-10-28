@@ -2,17 +2,17 @@
 
 Drivers send receipt photos on WhatsApp. Suppliers email tax invoices. This project accepts those documents, reads them with a mocked extractor, and attaches each one to a card transaction when the match is clear. Ambiguous matches wait for a person.
 
-The assignment is the source of truth: [exercise gist](https://gist.github.com/mchbeib/5901995f44d3d7d1359510bc0dd2fa4d). Reference checkouts under the parent folder are evidence only. Their source is not reused. See [docs/REFERENCE_ANALYSIS.md](docs/REFERENCE_ANALYSIS.md).
+The assignment is the source of truth: [exercise gist](https://gist.github.com/mchbeib/5901995f44d3d7d1359510bc0dd2fa4d).
 
 ## Status
 
-Phase 8 is in the repository: the matcher, the mock extractor, both webhooks, confirm and reject, late-charge rematch, and `/review`. HMAC and a live extractor are still later.
+Phase 8 is in the repository: the matcher, the mock extractor, both webhooks, confirm and reject, late-charge rematch, and `/review`. A live photo reader is available when `EXTRACTOR=tesseract` (ADR 0009). It uses Apple Vision. `/upload` stores a photo as email from the seeded Alfanar mailbox and shows the read (ASM-010). The mock stays the default. HMAC is still later.
 
 | Decision | State |
 | --- | --- |
 | This directory is the Next.js project root | Accepted |
 | Integer primary keys | Accepted |
-| HMAC and a live extractor wait until after the review page | Accepted |
+| HMAC waits until after the review page. The live extractor reads photos with Apple Vision and is off by default | Accepted. [ADR 0002](docs/decisions/0002-defer-hmac-and-live-extractor.md), [ADR 0009](docs/decisions/0009-tesseract-extractor.md) |
 | Scoring, idempotency keys, file storage, and email-sender tables | Accepted. [ADR 0003](docs/decisions/0003-idempotency-keys.md) through [ADR 0007](docs/decisions/0007-email-sender-scope.md) |
 
 ## Documentation
@@ -28,11 +28,17 @@ Phase 8 is in the repository: the matcher, the mock extractor, both webhooks, co
 | [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) | The build order |
 | [docs/REQUIREMENT_TRACEABILITY.md](docs/REQUIREMENT_TRACEABILITY.md) | Where each ID is specified, built, and checked |
 | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | How to change the project once code exists |
-| [docs/decisions/](docs/decisions/0001-integer-primary-keys.md) | Accepted design records, ADR 0001 through ADR 0007 |
-| [docs/REVIEW_READINESS.md](docs/REVIEW_READINESS.md) | Pre-development review. B1–B3 were closed after it was written. |
+| [docs/decisions/](docs/decisions/0001-integer-primary-keys.md) | Accepted design records, ADR 0001 through ADR 0009 |
 | [docs/PHASE_1_REVIEW.md](docs/PHASE_1_REVIEW.md) | Review of the schema, seed, and tests before phase 2 |
 | [AGENTS.md](AGENTS.md) | Rules an agent must follow before editing |
-| [DISCOVERY.md](DISCOVERY.md) | Original evidence log. `docs/` wins where they disagree. |
+
+## What a deployed host runs
+
+The mock extractor is the default. Sample webhooks and `npm test` never call a photo reader and never need a key.
+
+`EXTRACTOR=tesseract` turns on the live reader. Photos are read by Apple Vision, compiled on that machine with `swiftc` the first time a photo arrives. That path works on macOS. A Linux container cannot compile or run it, so a photo fails closed as `UNREADABLE`. A digital PDF is read from its text layer with `unpdf` and does not need macOS.
+
+Currency conversion lives in `lib/money`. The pegs are in source. The matcher does not read the operating system's locale and does not call a live FX feed, so the same conversion runs on every host. A different currency is scored and left for a person. It is not auto-attached.
 
 Root [IMPLEMENTATION.md](IMPLEMENTATION.md) is the scoring guide and the email curl. It is not a substitute for the design docs.
 
@@ -63,6 +69,10 @@ npm run lint
 ```
 
 `npx prisma` must be run inside this directory so it uses Prisma 6. A seed prints `{"clients":2,"emailSenders":2,"transactions":15}` when the database has only the reference rows. Running it again does not remove documents. On 15 Oct 2026, `npm test` passed 16 suites and 153 tests. `tsc` and `eslint` exited 0.
+
+On 27 Oct 2026, `npm test` passed 20 suites and 184 tests. `npx tsc --noEmit` and `npm run lint` exited 0. A separate manual Vision read of the two station photos returned the amount, date, VAT number, and invoice number. That call is not part of `npm test`. Leave `EXTRACTOR` unset for the sample webhooks. Set `EXTRACTOR=tesseract` and restart the server to read a real photo. The first photo compiles the macOS reader.
+
+`/upload` stores a PNG, JPEG, WEBP, or PDF as email from the seeded Alfanar mailbox (ASM-010). With `EXTRACTOR=tesseract`, the page shows the text read from the bill. The recorded pass of the four real files is `fixtures/demo/real-bills/extraction-demo.mp4`.
 
 The email sample is `fixtures/webhooks/email-exact.json`. Start the app, then post it:
 
