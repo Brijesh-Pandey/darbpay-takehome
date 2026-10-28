@@ -72,7 +72,7 @@ npm run lint
 
 On 27 Oct 2026, `npm test` passed 20 suites and 184 tests. `npx tsc --noEmit` and `npm run lint` exited 0. A separate manual Vision read of the two station photos returned the amount, date, VAT number, and invoice number. That call is not part of `npm test`. Leave `EXTRACTOR` unset for the sample webhooks. Set `EXTRACTOR=tesseract` and restart the server to read a real photo. The first photo compiles the macOS reader.
 
-`/upload` stores a PNG, JPEG, WEBP, or PDF as email from the seeded Alfanar mailbox (ASM-010). With `EXTRACTOR=tesseract`, the page shows the text read from the bill. The recorded pass of the four real files is `fixtures/demo/real-bills/extraction-demo.mp4`.
+`/upload` stores a PNG, JPEG, WEBP, or PDF as email from the seeded Alfanar mailbox (ASM-010). With `EXTRACTOR=tesseract`, the page shows the text read from the bill. The two example buttons use the Harbor Coffee and Blue Bottle images in `fixtures/demo/`. Real bills and the interview recording stay on the machine that made them and are not in this repository.
 
 The email sample is `fixtures/webhooks/email-exact.json`. Start the app, then post it:
 
